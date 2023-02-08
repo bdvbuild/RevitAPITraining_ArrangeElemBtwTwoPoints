@@ -1,0 +1,24 @@
+﻿<Window x:Class="RevitAPITraining_ArrangeElemBtwTwoPoints.MainView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RevitAPITraining_ArrangeElemBtwTwoPoints"
+             mc:Ignorable="d" 
+             Height="Auto" Width="200"
+        Title="Расстановка семейств">
+    <StackPanel>
+        <Label Content="Семейство:"/>
+        <ComboBox ItemsSource="{Binding familyList}"
+                  SelectedItem="{Binding selectedFamily}"
+                  DisplayMemberPath="Name"
+                  Margin="5"/>
+        <Label Content="Количество элементов:"/>
+        <TextBox Margin="5"
+                 Text="{Binding numElem}"
+                 x:Name="textbox"/>
+        <Button Content="Применить"
+                Margin="5"
+                Command="{Binding saveCommand}"/>
+    </StackPanel>
+</Window>
