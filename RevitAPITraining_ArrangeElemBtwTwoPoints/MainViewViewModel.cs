@@ -20,13 +20,13 @@ namespace RevitAPITraining_ArrangeElemBtwTwoPoints
     internal class MainViewViewModel
     {
         private ExternalCommandData _commandData;
-        public XYZ point1 { get; }
-        public XYZ point2 { get; }
-        public List<FamilySymbol> familyList { get; } = new List<FamilySymbol>();
-        public FamilySymbol selectedFamily { get; set; }
-        public DelegateCommand saveCommand { get; }
+        public XYZ Point1 { get; }
+        public XYZ Point2 { get; }
+        public List<FamilySymbol> FamilyList { get; } = new List<FamilySymbol>();
+        public FamilySymbol SelectedFamily { get; set; }
+        public DelegateCommand SaveCommand { get; }
         private int _numElem = 2;
-        public int numElem
+        public int NumElem
         {
             get => _numElem;
             set
@@ -59,11 +59,11 @@ namespace RevitAPITraining_ArrangeElemBtwTwoPoints
         public MainViewViewModel(ExternalCommandData commandData)
         {
             _commandData = commandData;
-            point1 = Utils.GetPoint(commandData);
-            point2 = Utils.GetPoint(commandData);
+            Point1 = Utils.GetPoint(commandData);
+            Point2 = Utils.GetPoint(commandData);
 
-            familyList = Utils.GetFamilyList(commandData);
-            saveCommand = new DelegateCommand(OnSaveCommand);
+            FamilyList = Utils.GetFamilyList(commandData);
+            SaveCommand = new DelegateCommand(OnSaveCommand);
         }
 
         public void OnSaveCommand()
@@ -77,13 +77,13 @@ namespace RevitAPITraining_ArrangeElemBtwTwoPoints
             ElementId levelId = activeView.LevelId;
             Level level = doc.GetElement(levelId) as Level;
 
-            if (selectedFamily == null)
+            if (SelectedFamily == null)
             {
                 return;
             }
 
             //Создание вектора
-            XYZ direction = point2 - point1;
+            XYZ direction = Point2 - Point1;
             //Получение расстояния между точками
             double distance = direction.GetLength();
             //Вычисление шага
@@ -95,13 +95,13 @@ namespace RevitAPITraining_ArrangeElemBtwTwoPoints
                 using (Transaction ts = new Transaction(doc, "Set family"))
                 {
                     ts.Start();
-                    if (!selectedFamily.IsActive)
+                    if (!SelectedFamily.IsActive)
                     {
-                        selectedFamily.Activate();
+                        SelectedFamily.Activate();
                         doc.Regenerate();
                     }
-                    XYZ location = point1 + (direction.Normalize() * step * i);
-                    FamilyInstance fi = doc.Create.NewFamilyInstance(location, selectedFamily, level, StructuralType.NonStructural);
+                    XYZ location = Point1 + (direction.Normalize() * step * i);
+                    FamilyInstance fi = doc.Create.NewFamilyInstance(location, SelectedFamily, level, StructuralType.NonStructural);
                     ts.Commit();
                 }
             }
