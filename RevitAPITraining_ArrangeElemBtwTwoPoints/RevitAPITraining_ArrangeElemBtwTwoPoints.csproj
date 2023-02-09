@@ -44,6 +44,9 @@
       <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2023\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="RevitTask, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RevitTask.3.0.0\lib\net47\RevitTask.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Transactions" />

@@ -1,73 +1,52 @@
 ﻿using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Plumbing;
 using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using Prism.Commands;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using View = Autodesk.Revit.DB.View;
 
 namespace RevitAPITraining_ArrangeElemBtwTwoPoints
 {
     internal class MainViewViewModel
     {
-        private ExternalCommandData _commandData;
-        public XYZ Point1 { get; }
-        public XYZ Point2 { get; }
+        private readonly ExternalCommandData _commandData;
+        public DelegateCommand GetPoints { get; private set; }
+        public XYZ Point1 { get; set; }
+        public XYZ Point2 { get; set; }
         public List<FamilySymbol> FamilyList { get; } = new List<FamilySymbol>();
         public FamilySymbol SelectedFamily { get; set; }
+        public int NumElem { get; set; } = 2;
         public DelegateCommand SaveCommand { get; }
-        private int _numElem = 2;
-        public int NumElem
-        {
-            get => _numElem;
-            set
-            {
-                bool val = false;
-                do
-                {
-                    if (int.TryParse(value.ToString(), out int result))
-                    {
-                        if (value <= 2)
-                        {
-                            _numElem = 2;
-                            val = true;
-                            break;
-                        }
-                        else
-                        {
-                            _numElem = result;
-                            val = true;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Введите целое число");
-                    }
-                } while (!val);
-            }
-        }
+        private RevitTask RevitTask { get; set; }
         public MainViewViewModel(ExternalCommandData commandData)
         {
             _commandData = commandData;
-            Point1 = Utils.GetPoint(commandData);
-            Point2 = Utils.GetPoint(commandData);
 
+            GetPoints = new DelegateCommand(OnGetPoints);
             FamilyList = Utils.GetFamilyList(commandData);
             SaveCommand = new DelegateCommand(OnSaveCommand);
+            RevitTask = new RevitTask();
         }
 
-        public void OnSaveCommand()
+        private void OnGetPoints()
         {
+            RaiseHideRequest();
+
+            Point1 = Utils.GetPoint(_commandData);
+            Point2 = Utils.GetPoint(_commandData);
+
+            RaiseShowRequest();
+        }
+
+        public async void OnSaveCommand()
+        {
+            RaiseHideRequest();
+
             UIApplication uiapp = _commandData.Application;
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
@@ -79,6 +58,15 @@ namespace RevitAPITraining_ArrangeElemBtwTwoPoints
 
             if (SelectedFamily == null)
             {
+                MessageBox.Show("Выберите семейство", "Ошибка ввода");
+                RaiseShowRequest();
+                return;
+            }
+
+            if (Point1 == null || Point2 == null)
+            {
+                MessageBox.Show("Укажите точки", "Ошибка ввода");
+                RaiseShowRequest();
                 return;
             }
 
@@ -87,25 +75,37 @@ namespace RevitAPITraining_ArrangeElemBtwTwoPoints
             //Получение расстояния между точками
             double distance = direction.GetLength();
             //Вычисление шага
-            double step = distance / (_numElem - 1);
+            double step = distance / (NumElem - 1);
 
-            //Размещение семейств
-            for (int i = 0; i < _numElem; i++)
+
+            string mess = string.Empty;
+            try
             {
-                using (Transaction ts = new Transaction(doc, "Set family"))
+                await RevitTask.Run(app =>
                 {
-                    ts.Start();
-                    if (!SelectedFamily.IsActive)
+                    //Размещение семейств
+                    for (int i = 0; i < NumElem; i++)
                     {
-                        SelectedFamily.Activate();
-                        doc.Regenerate();
+                        using (Transaction ts = new Transaction(doc, "Set family"))
+                        {
+                            ts.Start();
+                            if (!SelectedFamily.IsActive)
+                            {
+                                SelectedFamily.Activate();
+                                doc.Regenerate();
+                            }
+                            XYZ location = Point1 + (direction.Normalize() * step * i);
+                            FamilyInstance fi = doc.Create.NewFamilyInstance(location, SelectedFamily, level, StructuralType.NonStructural);
+                            ts.Commit();
+                        }
                     }
-                    XYZ location = Point1 + (direction.Normalize() * step * i);
-                    FamilyInstance fi = doc.Create.NewFamilyInstance(location, SelectedFamily, level, StructuralType.NonStructural);
-                    ts.Commit();
-                }
+                });
             }
-            RaiseCloseRequest();
+            catch (Exception ex)
+            {
+                mess = ex.Message;
+            }
+            RaiseShowRequest();
         }
 
         public event EventHandler CloseRequest;
@@ -113,6 +113,18 @@ namespace RevitAPITraining_ArrangeElemBtwTwoPoints
         {
             CloseRequest?.Invoke(this, EventArgs.Empty);
         }
+        public event EventHandler HideRequest;
+        public void RaiseHideRequest()
+        {
+            HideRequest?.Invoke(this, EventArgs.Empty);
+        }
+        public event EventHandler ShowRequest;
+        public void RaiseShowRequest()
+        {
+            ShowRequest?.Invoke(this, EventArgs.Empty);
+        }
+
+
     }
     public class Utils
     {

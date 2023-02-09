@@ -5,9 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:RevitAPITraining_ArrangeElemBtwTwoPoints"
              mc:Ignorable="d" 
-             Height="Auto" Width="200"
+             Height="220" Width="300"
         Title="Расстановка семейств">
     <StackPanel>
+        <Button Content="Выбрать точки" 
+                Command="{Binding GetPoints}"
+                Margin="5"/>
         <Label Content="Семейство:"/>
         <ComboBox ItemsSource="{Binding FamilyList}"
                   SelectedItem="{Binding SelectedFamily}"
@@ -16,7 +19,9 @@
         <Label Content="Количество элементов:"/>
         <TextBox Margin="5"
                  Text="{Binding NumElem}"
-                 x:Name="textbox"/>
+                 x:Name="TextBox1"
+                 LostFocus="TextBox1_LostFocus"/>
+                 <!--TextChanged="TextBox1_TextChanged"-->
         <Button Content="Применить"
                 Margin="5"
                 Command="{Binding SaveCommand}"/>
