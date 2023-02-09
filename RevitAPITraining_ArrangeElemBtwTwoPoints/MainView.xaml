@@ -9,16 +9,16 @@
         Title="Расстановка семейств">
     <StackPanel>
         <Label Content="Семейство:"/>
-        <ComboBox ItemsSource="{Binding familyList}"
-                  SelectedItem="{Binding selectedFamily}"
+        <ComboBox ItemsSource="{Binding FamilyList}"
+                  SelectedItem="{Binding SelectedFamily}"
                   DisplayMemberPath="Name"
                   Margin="5"/>
         <Label Content="Количество элементов:"/>
         <TextBox Margin="5"
-                 Text="{Binding numElem}"
+                 Text="{Binding NumElem}"
                  x:Name="textbox"/>
         <Button Content="Применить"
                 Margin="5"
-                Command="{Binding saveCommand}"/>
+                Command="{Binding SaveCommand}"/>
     </StackPanel>
 </Window>
